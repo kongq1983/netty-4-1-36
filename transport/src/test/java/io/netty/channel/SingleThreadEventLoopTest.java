@@ -17,14 +17,14 @@ package io.netty.channel;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
+//import ch.qos.logback.core.Appender;
 import io.netty.channel.local.LocalChannel;
 import io.netty.util.concurrent.EventExecutor;
 import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +44,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class SingleThreadEventLoopTest {
-
+ /*
     private static final Runnable NOOP = new Runnable() {
         @Override
         public void run() { }
@@ -361,6 +361,8 @@ public class SingleThreadEventLoopTest {
         assertEquals(NUM_TASKS, ranTasks.get());
     }
 
+
+
     @Test(timeout = 10000)
     @SuppressWarnings("deprecation")
     public void testRegistrationAfterShutdown() throws Exception {
@@ -599,5 +601,5 @@ public class SingleThreadEventLoopTest {
         public void resetInvocationCount() {
             invocationCount.set(0);
         }
-    }
+    }*/
 }
