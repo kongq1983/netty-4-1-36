@@ -169,7 +169,7 @@
   <build>
     <plugins>
       <!-- run-example.sh invokes this plugin to launch an example. -->
-      <plugin>
+      <!--<plugin>
         <groupId>kr.motd.maven</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <configuration>
@@ -180,11 +180,19 @@
             -classpath %classpath
             ${argLine.leak}
             ${argLine.coverage}
-            ${argLine.example}
-            ${exampleClass}
           </commandlineArgs>
         </configuration>
-      </plugin>
+      </plugin>-->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>1.6</source>
+                <target>1.6</target>
+            </configuration>
+        </plugin>
+
+
     </plugins>
   </build>
 </project>
