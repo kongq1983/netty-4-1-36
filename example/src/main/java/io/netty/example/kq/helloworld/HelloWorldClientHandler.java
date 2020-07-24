@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.example.kq.util.DateUtil;
 
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +37,7 @@ public class HelloWorldClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        System.out.println(" HelloWorldClientHandler channelRead :"+msg);
+        System.out.println(DateUtil.now()+"  HelloWorldClientHandler channelRead :"+msg);
         try {
             TimeUnit.SECONDS.sleep(3);
         }catch (Exception e){

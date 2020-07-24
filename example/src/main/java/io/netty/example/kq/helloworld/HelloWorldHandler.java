@@ -2,6 +2,7 @@ package io.netty.example.kq.helloworld;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.example.kq.util.DateUtil;
 
 
 /**
@@ -13,13 +14,13 @@ public class HelloWorldHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        System.out.println(" msg="+msg);
+        System.out.println(DateUtil.now()+" msg="+msg);
         ctx.write(msg);
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        System.out.println("HelloWorldHandler channelReadComplete="+ctx);
+        System.out.println(DateUtil.now()+" HelloWorldHandler channelReadComplete="+ctx);
         ctx.flush();
     }
 

@@ -141,9 +141,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
         provider = selectorProvider;
         final SelectorTuple selectorTuple = openSelector();
-        selector = selectorTuple.selector;
-        unwrappedSelector = selectorTuple.unwrappedSelector;
-        selectStrategy = strategy;
+        selector = selectorTuple.selector; // SelectedSelectionKeySetSelector  包装unwrappedSelector
+        unwrappedSelector = selectorTuple.unwrappedSelector; //原始的nio创建对象  比如WindowsSelectorImpl
+        selectStrategy = strategy; // DefaultSelectStrategy
     }
 
     private static final class SelectorTuple {
@@ -157,22 +157,22 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
         SelectorTuple(Selector unwrappedSelector, Selector selector) {
             this.unwrappedSelector = unwrappedSelector;
-            this.selector = selector;
+            this.selector = selector; // SelectedSelectionKeySetSelector  这里的delegate=unwrappedSelector
         }
     }
 
     private SelectorTuple openSelector() {
         final Selector unwrappedSelector;
         try {
-            unwrappedSelector = provider.openSelector();
+            unwrappedSelector = provider.openSelector(); //创建java原生selector
         } catch (IOException e) {
             throw new ChannelException("failed to open a new selector", e);
         }
-
+        //是否需要优化，默认需要DISABLE_KEYSET_OPTIMIZATION=false
         if (DISABLE_KEY_SET_OPTIMIZATION) {
             return new SelectorTuple(unwrappedSelector);
         }
-
+        //尝试获取sun.nio.ch.SelectorImpl的class对象
         Object maybeSelectorImplClass = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
@@ -186,25 +186,25 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 }
             }
         });
-
+        //如果返回maybeSelectorImplClass不是一个class对象，或者maybeSelectorImplClass不是(unwrappedSelector.getClass()他的子类
         if (!(maybeSelectorImplClass instanceof Class) ||
             // ensure the current selector implementation is what we can instrument.
             !((Class<?>) maybeSelectorImplClass).isAssignableFrom(unwrappedSelector.getClass())) {
-            if (maybeSelectorImplClass instanceof Throwable) {
+            if (maybeSelectorImplClass instanceof Throwable) { //如果是异常说明上面方法抛出异常
                 Throwable t = (Throwable) maybeSelectorImplClass;
                 logger.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, t);
             }
-            return new SelectorTuple(unwrappedSelector);
+            return new SelectorTuple(unwrappedSelector); //创建一个SelectorTuple，内部unwrappedSelector并没有被优化
         }
-
+        //selector的class对象
         final Class<?> selectorImplClass = (Class<?>) maybeSelectorImplClass;
-        final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet();
+        final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet(); //内部素组结构实现的set接口
 
         Object maybeException = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 try {
-                    Field selectedKeysField = selectorImplClass.getDeclaredField("selectedKeys");
+                    Field selectedKeysField = selectorImplClass.getDeclaredField("selectedKeys"); //反射获取属性
                     Field publicSelectedKeysField = selectorImplClass.getDeclaredField("publicSelectedKeys");
 
                     if (PlatformDependent.javaVersion() >= 9 && PlatformDependent.hasUnsafe()) {
@@ -223,18 +223,18 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         }
                         // We could not retrieve the offset, lets try reflection as last-resort.
                     }
-
+                    //设置属性可访问
                     Throwable cause = ReflectionUtil.trySetAccessible(selectedKeysField, true);
                     if (cause != null) {
                         return cause;
                     }
-                    cause = ReflectionUtil.trySetAccessible(publicSelectedKeysField, true);
+                    cause = ReflectionUtil.trySetAccessible(publicSelectedKeysField, true); //设置属性可访问
                     if (cause != null) {
                         return cause;
                     }
 
-                    selectedKeysField.set(unwrappedSelector, selectedKeySet);
-                    publicSelectedKeysField.set(unwrappedSelector, selectedKeySet);
+                    selectedKeysField.set(unwrappedSelector, selectedKeySet);  //把selectedKeys设置为SelectedSelectionKeySet（它是数组实现)，原来是HashMap实现
+                    publicSelectedKeysField.set(unwrappedSelector, selectedKeySet); //把publicSelectedKeys设置为SelectedSelectionKeySet（它是数组实现)，原来是HashMap实现
                     return null;
                 } catch (NoSuchFieldException e) {
                     return e;
@@ -243,12 +243,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 }
             }
         });
-
+        //如果返回结果是异常信息
         if (maybeException instanceof Exception) {
             selectedKeys = null;
             Exception e = (Exception) maybeException;
             logger.trace("failed to instrument a special java.util.Set into: {}", unwrappedSelector, e);
-            return new SelectorTuple(unwrappedSelector);
+            return new SelectorTuple(unwrappedSelector); //返回SelectorTuple，内部unwrappedSelector并没有被优化
         }
         selectedKeys = selectedKeySet;
         logger.trace("instrumented a special java.util.Set into: {}", unwrappedSelector);

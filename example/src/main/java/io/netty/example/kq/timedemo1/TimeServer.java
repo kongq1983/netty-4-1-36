@@ -1,4 +1,4 @@
-package io.netty.example.kq.helloworld;
+package io.netty.example.kq.timedemo1;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -10,17 +10,17 @@ import io.netty.handler.logging.LoggingHandler;
 
 /**
  * @author kq
- * @date 2020-07-15 18:07
+ * @date 2020-07-16 15:39
  * @since 2020-0630
  */
-public class HelloWorldServer {
+public class TimeServer {
 
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8018"));
+    public static final int PORT = Integer.parseInt(System.getProperty("port", "8018"));
 
     public static void main(String[] args) throws Exception{
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(); // 不设置nThreads 默认=cpu核数*2  比如4核=4*2=8
-        final HelloWorldHandler serverHandler = new HelloWorldHandler();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        final TimeServerHandler serverHandler = new TimeServerHandler();
 
 
         try {
@@ -50,5 +50,6 @@ public class HelloWorldServer {
         }
 
     }
+
 
 }

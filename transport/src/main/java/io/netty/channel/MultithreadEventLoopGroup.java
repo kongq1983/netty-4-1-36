@@ -33,12 +33,12 @@ import java.util.concurrent.ThreadFactory;
 public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutorGroup implements EventLoopGroup {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(MultithreadEventLoopGroup.class);
-
+    /** cpu核数*2  比如4核=4*2=8 */
     private static final int DEFAULT_EVENT_LOOP_THREADS;
 
     static {
         DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
-                "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+                "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2)); //availableProcessors=cpu核数*2  比如4核=4*2=8
 
         if (logger.isDebugEnabled()) {
             logger.debug("-Dio.netty.eventLoopThreads: {}", DEFAULT_EVENT_LOOP_THREADS);
