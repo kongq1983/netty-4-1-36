@@ -25,6 +25,6 @@ public final class DefaultSelectStrategyFactory implements SelectStrategyFactory
 
     @Override
     public SelectStrategy newSelectStrategy() {
-        return DefaultSelectStrategy.INSTANCE;
+        return DefaultSelectStrategy.INSTANCE; //默认Select策略
     }
 }

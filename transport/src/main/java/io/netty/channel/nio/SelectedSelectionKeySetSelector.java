@@ -26,8 +26,8 @@ final class SelectedSelectionKeySetSelector extends Selector {
     private final Selector delegate;
 
     SelectedSelectionKeySetSelector(Selector delegate, SelectedSelectionKeySet selectionKeys) {
-        this.delegate = delegate;
-        this.selectionKeys = selectionKeys;
+        this.delegate = delegate; // jdk原生Selector的实现类
+        this.selectionKeys = selectionKeys; //数组实现的SelectedSelectionKeySet
     }
 
     @Override

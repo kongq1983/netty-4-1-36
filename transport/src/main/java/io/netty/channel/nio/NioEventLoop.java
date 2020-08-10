@@ -198,7 +198,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
         //selector的class对象
         final Class<?> selectorImplClass = (Class<?>) maybeSelectorImplClass;
-        final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet(); //内部素组结构实现的set接口
+        final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet(); //******注意这里 内部素组结构实现的set接口
 
         Object maybeException = AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
@@ -233,8 +233,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         return cause;
                     }
 
-                    selectedKeysField.set(unwrappedSelector, selectedKeySet);  //把selectedKeys设置为SelectedSelectionKeySet（它是数组实现)，原来是HashMap实现
-                    publicSelectedKeysField.set(unwrappedSelector, selectedKeySet); //把publicSelectedKeys设置为SelectedSelectionKeySet（它是数组实现)，原来是HashMap实现
+                    selectedKeysField.set(unwrappedSelector, selectedKeySet);  //把selectedKeys设置为SelectedSelectionKeySet（它是数组实现)，原来是HashSet，也就是用HashMap实现
+                    publicSelectedKeysField.set(unwrappedSelector, selectedKeySet); //把publicSelectedKeys设置为SelectedSelectionKeySet（它是数组实现)，原来是HashSet，也就是用HashMap实现
                     return null;
                 } catch (NoSuchFieldException e) {
                     return e;
@@ -427,7 +427,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     protected void run() {
         for (;;) {
             try {
-                try {
+                try { // 判断接下来是是执行select还是直接处理IO事件和执行队列中的task  hasTask判断当前线程的queue中是否还有待执行的任务
                     switch (selectStrategy.calculateStrategy(selectNowSupplier, hasTasks())) {
                     case SelectStrategy.CONTINUE:
                         continue;
@@ -435,7 +435,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     case SelectStrategy.BUSY_WAIT:
                         // fall-through to SELECT since the busy-wait is not supported with NIO
 
-                    case SelectStrategy.SELECT:
+                    case SelectStrategy.SELECT: //默认SELECT事件
                         select(wakenUp.getAndSet(false));
 
                         // 'wakenUp.compareAndSet(false, true)' is always evaluated
@@ -482,22 +482,22 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
-                final int ioRatio = this.ioRatio;
-                if (ioRatio == 100) {
+                final int ioRatio = this.ioRatio; //默认是50
+                if (ioRatio == 100) { // 如果比例是100，表示每次都处理完IO事件后，执行所有的task
                     try {
                         processSelectedKeys();
                     } finally {
-                        // Ensure we always run tasks.
+                        // Ensure we always run tasks. 保证能执行所有的task
                         runAllTasks();
                     }
                 } else {
-                    final long ioStartTime = System.nanoTime();
+                    final long ioStartTime = System.nanoTime(); // 记录处理IO事件开始时间
                     try {
-                        processSelectedKeys();
+                        processSelectedKeys(); // 处理IO事件
                     } finally {
                         // Ensure we always run tasks.
-                        final long ioTime = System.nanoTime() - ioStartTime;
-                        runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
+                        final long ioTime = System.nanoTime() - ioStartTime; //  当前时间-处理IO事件开始的时间=处理IO事件花费的时间
+                        runAllTasks(ioTime * (100 - ioRatio) / ioRatio); // 执行task的时间taskTime = ioTime * (100 - ioRatio) / ioRatio , 如果事件到了，还有未执行的task，runAllTasks也会返回
                     }
                 }
             } catch (Throwable t) {
@@ -752,7 +752,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
     int selectNow() throws IOException {
         try {
-            return selector.selectNow();
+            return selector.selectNow(); //jdk原生Selector的selectNow函数
         } finally {
             // restore wakeup state if needed
             if (wakenUp.get()) {

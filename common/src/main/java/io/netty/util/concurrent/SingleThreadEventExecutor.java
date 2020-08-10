@@ -408,9 +408,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
             // Check timeout every 64 tasks because nanoTime() is relatively expensive.
             // XXX: Hard-coded value - will make it configurable if it is really a problem.
-            if ((runTasks & 0x3F) == 0) {
+            if ((runTasks & 0x3F) == 0) { //0x3F=63 也就是64次任务，进入1次if条件
                 lastExecutionTime = ScheduledFutureTask.nanoTime();
-                if (lastExecutionTime >= deadline) {
+                if (lastExecutionTime >= deadline) { // 判断是否到达了截止时间，如果当前时间>=deadline，则break结束循环
                     break;
                 }
             }
@@ -418,7 +418,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             task = pollTask();
             if (task == null) {
                 lastExecutionTime = ScheduledFutureTask.nanoTime();
-                break;
+                break; // 没有任务，则结束循环
             }
         }
 

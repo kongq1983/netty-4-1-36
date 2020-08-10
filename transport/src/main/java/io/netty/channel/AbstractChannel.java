@@ -82,7 +82,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();
-        unsafe = newUnsafe();
+        unsafe = newUnsafe(); // NioMessageUnsafe
         pipeline = newChannelPipeline(); // 创建DefaultChannelPipeline
     }
 

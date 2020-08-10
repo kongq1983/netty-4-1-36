@@ -52,7 +52,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
         }
 
         @Override
-        public EventExecutor next() {
+        public EventExecutor next() {//负载均衡
             return executors[idx.getAndIncrement() & executors.length - 1];
         }
     }
