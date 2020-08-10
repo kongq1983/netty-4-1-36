@@ -78,11 +78,11 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
      * {@link Channel}'s.
      */
     public ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
-        super.group(parentGroup);
+        super.group(parentGroup); //acceptor
         if (childGroup == null) {
             throw new NullPointerException("childGroup");
         }
-        if (this.childGroup != null) {
+        if (this.childGroup != null) { // io线程
             throw new IllegalStateException("childGroup set already");
         }
         this.childGroup = childGroup;
@@ -153,7 +153,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             }
         }
 
-        ChannelPipeline p = channel.pipeline();
+        ChannelPipeline p = channel.pipeline(); // DefaultChannelPipeline
 
         final EventLoopGroup currentChildGroup = childGroup;
         final ChannelHandler currentChildHandler = childHandler;
@@ -239,7 +239,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         }
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked") /** 客户端发送数据 到这里 */
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             final Channel child = (Channel) msg;
 

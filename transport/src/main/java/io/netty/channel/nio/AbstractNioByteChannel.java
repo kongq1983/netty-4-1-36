@@ -130,7 +130,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
         @Override
         public final void read() {
-            final ChannelConfig config = config();
+            final ChannelConfig config = config(); // read-event: SocketChannelConfig
             if (shouldBreakReadReady(config)) {
                 clearReadPending();
                 return;
@@ -145,7 +145,7 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             try {
                 do {
                     byteBuf = allocHandle.allocate(allocator);
-                    allocHandle.lastBytesRead(doReadBytes(byteBuf));
+                    allocHandle.lastBytesRead(doReadBytes(byteBuf));  //不断调用doReadBytes
                     if (allocHandle.lastBytesRead() <= 0) {
                         // nothing was read. release the buffer.
                         byteBuf.release();
@@ -160,8 +160,8 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
                     allocHandle.incMessagesRead(1);
                     readPending = false;
-                    pipeline.fireChannelRead(byteBuf);
-                    byteBuf = null;
+                    pipeline.fireChannelRead(byteBuf); // 读到入口触发pipeline的fireChannelRead
+                    byteBuf = null; // 读完设置null
                 } while (allocHandle.continueReading());
 
                 allocHandle.readComplete();

@@ -752,7 +752,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         if (task == null) {
             throw new NullPointerException("task");
         }
-
+        // 判断是否
         boolean inEventLoop = inEventLoop();
         addTask(task);
         if (!inEventLoop) {

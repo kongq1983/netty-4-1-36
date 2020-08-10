@@ -404,13 +404,13 @@ public abstract class ByteBuf implements ReferenceCounted, Comparable<ByteBuf> {
      */
     public abstract ByteBuf setIndex(int readerIndex, int writerIndex);
 
-    /**
+    /** 剩余多少可读长度  写的位置-当前读的位置
      * Returns the number of readable bytes which is equal to
      * {@code (this.writerIndex - this.readerIndex)}.
      */
     public abstract int readableBytes();
 
-    /**
+    /**剩余多少可写  容器长度-当前写的位置
      * Returns the number of writable bytes which is equal to
      * {@code (this.capacity - this.writerIndex)}.
      */
@@ -458,7 +458,7 @@ public abstract class ByteBuf implements ReferenceCounted, Comparable<ByteBuf> {
      */
     public abstract ByteBuf clear();
 
-    /**
+    /** markedReaderIndex=当前的readerIndex,  markedReaderIndex = readerIndex;
      * Marks the current {@code readerIndex} in this buffer.  You can
      * reposition the current {@code readerIndex} to the marked
      * {@code readerIndex} by calling {@link #resetReaderIndex()}.
@@ -1745,7 +1745,7 @@ public abstract class ByteBuf implements ReferenceCounted, Comparable<ByteBuf> {
      */
     public abstract int readBytes(FileChannel out, long position, int length) throws IOException;
 
-    /**
+    /** 当前的readerIndex = readerIndex+length, readerIndex += length;
      * Increases the current {@code readerIndex} by the specified
      * {@code length} in this buffer.
      *

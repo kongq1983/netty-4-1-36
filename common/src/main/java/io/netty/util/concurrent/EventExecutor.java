@@ -22,7 +22,7 @@ package io.netty.util.concurrent;
  * way to access methods.
  *
  */
-public interface EventExecutor extends EventExecutorGroup {
+public interface    EventExecutor extends EventExecutorGroup {
 
     /**
      * Returns a reference to itself.

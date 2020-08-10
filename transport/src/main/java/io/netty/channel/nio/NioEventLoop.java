@@ -140,7 +140,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new NullPointerException("selectStrategy");
         }
         provider = selectorProvider;
-        final SelectorTuple selectorTuple = openSelector();
+        final SelectorTuple selectorTuple = openSelector(); //SelectorProvider.provider().openSelector()
         selector = selectorTuple.selector; // SelectedSelectionKeySetSelector  包装unwrappedSelector
         unwrappedSelector = selectorTuple.unwrappedSelector; //原始的nio创建对象  比如WindowsSelectorImpl
         selectStrategy = strategy; // DefaultSelectStrategy
@@ -386,8 +386,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 }
 
                 int interestOps = key.interestOps();
-                key.cancel();
-                SelectionKey newKey = key.channel().register(newSelectorTuple.unwrappedSelector, interestOps, a);
+                key.cancel(); // 把以前的key取消
+                SelectionKey newKey = key.channel().register(newSelectorTuple.unwrappedSelector, interestOps, a); //把通道注册到新的Selector
                 if (a instanceof AbstractNioChannel) {
                     // Update SelectionKey
                     ((AbstractNioChannel) a).selectionKey = newKey;
@@ -677,7 +677,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
 
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
-            // to a spin loop
+            // to a spin loop OP_ACCEPT=16   OP_READ=1
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 unsafe.read();
             }
@@ -765,12 +765,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         Selector selector = this.selector;
         try {
             int selectCnt = 0;
-            long currentTimeNanos = System.nanoTime();
-            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);
+            long currentTimeNanos = System.nanoTime(); //当前系统的(开始时间)纳秒数
+            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos); //截止时间纳秒数
 
-            for (;;) {
-                long timeoutMillis = (selectDeadLineNanos - currentTimeNanos + 500000L) / 1000000L;
-                if (timeoutMillis <= 0) {
+            for (;;) { //阻塞时间(毫秒)=(截止时间-当前时间+0.5毫秒)
+                long timeoutMillis = (selectDeadLineNanos - currentTimeNanos + 500000L) / 1000000L; //1毫秒=10的6次方纳秒=1,000,000L
+                if (timeoutMillis <= 0) { // 时间已经到了
                     if (selectCnt == 0) {
                         selector.selectNow();
                         selectCnt = 1;
@@ -787,7 +787,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     selectCnt = 1;
                     break;
                 }
-
+                // 设置超时时间
                 int selectedKeys = selector.select(timeoutMillis);
                 selectCnt ++;
 

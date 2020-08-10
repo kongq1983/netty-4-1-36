@@ -101,7 +101,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         this.name = ObjectUtil.checkNotNull(name, "name");
         this.pipeline = pipeline;
         this.executor = executor;
-        this.executionMask = mask(handlerClass);
+        this.executionMask = mask(handlerClass); // 那些handler事件会回调
         // Its ordered if its driven by the EventLoop or the given Executor is an instanceof OrderedEventExecutor.
         ordered = executor == null || executor instanceof OrderedEventExecutor;
     }
@@ -348,16 +348,16 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     @Override
-    public ChannelHandlerContext fireChannelRead(final Object msg) {
-        invokeChannelRead(findContextInbound(MASK_CHANNEL_READ), msg);
+    public ChannelHandlerContext fireChannelRead(final Object msg) { // AbstractChannelHandlerContext
+        invokeChannelRead(findContextInbound(MASK_CHANNEL_READ), msg); // 得到下一个的READ channelRead
         return this;
     }
 
     static void invokeChannelRead(final AbstractChannelHandlerContext next, Object msg) {
-        final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
-        EventExecutor executor = next.executor();
+        final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next); // accetp-event=NioSocketChannel
+        EventExecutor executor = next.executor(); // AbstractChannelHandlerContext
         if (executor.inEventLoop()) {
-            next.invokeChannelRead(m);
+            next.invokeChannelRead(m); // 出发下一个invokeChannelRead
         } else {
             executor.execute(new Runnable() {
                 @Override
@@ -368,8 +368,8 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
-    private void invokeChannelRead(Object msg) {
-        if (invokeHandler()) {
+    private void invokeChannelRead(Object msg) { //msg=NioSocketChannel
+        if (invokeHandler()) { // AbstractChannelHandlerContext
             try {
                 ((ChannelInboundHandler) handler()).channelRead(this, msg);
             } catch (Throwable t) {
@@ -381,12 +381,12 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     @Override
-    public ChannelHandlerContext fireChannelReadComplete() {
-        invokeChannelReadComplete(findContextInbound(MASK_CHANNEL_READ_COMPLETE));
+    public ChannelHandlerContext fireChannelReadComplete() { // AbstractChannelHandlerContext
+        invokeChannelReadComplete(findContextInbound(MASK_CHANNEL_READ_COMPLETE)); // 得到下一个的READ_COMPLETE channelReadComplete
         return this;
     }
 
-    static void invokeChannelReadComplete(final AbstractChannelHandlerContext next) {
+    static void invokeChannelReadComplete(final AbstractChannelHandlerContext next) { // AbstractChannelHandlerContext
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelReadComplete();
@@ -399,7 +399,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
-    private void invokeChannelReadComplete() {
+    private void invokeChannelReadComplete() { // AbstractChannelHandlerContext
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelReadComplete(this);
@@ -663,8 +663,8 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     @Override
-    public ChannelHandlerContext read() {
-        final AbstractChannelHandlerContext next = findContextOutbound(MASK_READ);
+    public ChannelHandlerContext read() { // AbstractChannelHandlerContext
+        final AbstractChannelHandlerContext next = findContextOutbound(MASK_READ); // 获得上一个read事件
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeRead();
@@ -721,7 +721,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     @Override
     public ChannelHandlerContext flush() {
-        final AbstractChannelHandlerContext next = findContextOutbound(MASK_FLUSH);
+        final AbstractChannelHandlerContext next = findContextOutbound(MASK_FLUSH); // 找到下一个flush
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeFlush();
@@ -736,7 +736,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return this;
     }
 
-    private void invokeFlush() {
+    private void invokeFlush() { // AbstractChannelHandlerContext
         if (invokeHandler()) {
             invokeFlush0();
         } else {
@@ -744,7 +744,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
-    private void invokeFlush0() {
+    private void invokeFlush0() { // AbstractChannelHandlerContext
         try {
             ((ChannelOutboundHandler) handler()).flush(this);
         } catch (Throwable t) {
@@ -754,12 +754,12 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     @Override
     public ChannelFuture writeAndFlush(Object msg, ChannelPromise promise) {
-        write(msg, true, promise);
+        write(msg, true, promise); // AbstractChannelHandlerContext
         return promise;
     }
 
     private void invokeWriteAndFlush(Object msg, ChannelPromise promise) {
-        if (invokeHandler()) {
+        if (invokeHandler()) { // AbstractChannelHandlerContext
             invokeWrite0(msg, promise);
             invokeFlush0();
         } else {
@@ -784,7 +784,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
                 (MASK_WRITE | MASK_FLUSH) : MASK_WRITE);
         final Object m = pipeline.touch(msg, next);
         EventExecutor executor = next.executor();
-        if (executor.inEventLoop()) {
+        if (executor.inEventLoop()) { // 是否当前线程
             if (flush) {
                 next.invokeWriteAndFlush(m, promise);
             } else {
@@ -916,15 +916,15 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         AbstractChannelHandlerContext ctx = this;
         do {
             ctx = ctx.next;
-        } while ((ctx.executionMask & mask) == 0);
+        } while ((ctx.executionMask & mask) == 0); // 如果下一个Handler的某个事件，标注@Skip的会被跳过 继续寻找下一个
         return ctx;
     }
-
+    /** 找上一个Handler的某个出栈事件，标注@Skip的会被跳过 继续寻找下一个 */
     private AbstractChannelHandlerContext findContextOutbound(int mask) {
         AbstractChannelHandlerContext ctx = this;
         do {
             ctx = ctx.prev;
-        } while ((ctx.executionMask & mask) == 0);
+        } while ((ctx.executionMask & mask) == 0);  // 如果上一个Handler的某个事件，标注@Skip的会被跳过 继续寻找下一个
         return ctx;
     }
 

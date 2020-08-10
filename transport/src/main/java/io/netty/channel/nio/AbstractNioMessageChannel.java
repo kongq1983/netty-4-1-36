@@ -56,13 +56,13 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     }
 
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
-
+        /** 注意关注这个  readBuf  */
         private final List<Object> readBuf = new ArrayList<Object>();
 
         @Override
         public void read() {
             assert eventLoop().inEventLoop();
-            final ChannelConfig config = config();
+            final ChannelConfig config = config(); //连接是ServerSocketChannelConfig
             final ChannelPipeline pipeline = pipeline();
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
             allocHandle.reset(config);
@@ -72,7 +72,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
-                        int localRead = doReadMessages(readBuf);
+                        int localRead = doReadMessages(readBuf); //不断调用doReadMessages
                         if (localRead == 0) {
                             break;
                         }
@@ -90,7 +90,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
-                    pipeline.fireChannelRead(readBuf.get(i));
+                    pipeline.fireChannelRead(readBuf.get(i)); //如果是accept事件，则Object=NioSocketChannel
                 }
                 readBuf.clear();
                 allocHandle.readComplete();

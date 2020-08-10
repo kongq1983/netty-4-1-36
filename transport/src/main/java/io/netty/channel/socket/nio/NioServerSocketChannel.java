@@ -49,7 +49,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     private static final SelectorProvider DEFAULT_SELECTOR_PROVIDER = SelectorProvider.provider();
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioServerSocketChannel.class);
-
+    /**  打开ServerSocketChannel */
     private static ServerSocketChannel newSocket(SelectorProvider provider) {
         try {
             /**
@@ -140,7 +140,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
         javaChannel().close();
     }
 
-    @Override
+    @Override /** AbstractNioMessageChannel.read不断地调用这个doReadMessages */
     protected int doReadMessages(List<Object> buf) throws Exception {
         SocketChannel ch = SocketUtils.accept(javaChannel());
 

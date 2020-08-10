@@ -48,7 +48,7 @@ import java.util.Map;
  * transports such as datagram (UDP).</p>
  */
 public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C extends Channel> implements Cloneable {
-
+    /** 主线程  accector */
     volatile EventLoopGroup group;
     @SuppressWarnings("deprecation")
     private volatile ChannelFactory<? extends C> channelFactory;
@@ -316,8 +316,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
     final ChannelFuture initAndRegister() {
         Channel channel = null;
-        try {
-            channel = channelFactory.newChannel();
+        try { // 比如channel指定的是NioServerSocketChannel
+            channel = channelFactory.newChannel(); // ReflectiveChannelFactory 反射 constructor.newInstance()
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {

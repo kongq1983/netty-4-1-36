@@ -925,9 +925,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
-    @Override
+    @Override /** DefaultChannelPipeline的fireChannelRead 从head开始 */
     public final ChannelPipeline fireChannelRead(Object msg) {
-        AbstractChannelHandlerContext.invokeChannelRead(head, msg);
+        AbstractChannelHandlerContext.invokeChannelRead(head, msg); // DefaultChannelPipeline的fireChannelRead 从head开始
         return this;
     }
 
@@ -1249,7 +1249,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public ChannelHandler handler() {
-            return this;
+            return this; // 这里是TailContext
         }
 
         @Override
@@ -1260,17 +1260,17 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            onUnhandledInboundChannelActive();
+            onUnhandledInboundChannelActive(); // 这里是TailContext
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) {
-            onUnhandledInboundChannelInactive();
+            onUnhandledInboundChannelInactive(); // 这里是TailContext
         }
 
         @Override
         public void channelWritabilityChanged(ChannelHandlerContext ctx) {
-            onUnhandledChannelWritabilityChanged();
+            onUnhandledChannelWritabilityChanged(); // 这里是TailContext
         }
 
         @Override
@@ -1281,22 +1281,22 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-            onUnhandledInboundUserEventTriggered(evt);
+            onUnhandledInboundUserEventTriggered(evt); // 这里是TailContext
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            onUnhandledInboundException(cause);
+            onUnhandledInboundException(cause); // 这里是TailContext
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            onUnhandledInboundMessage(msg);
+            onUnhandledInboundMessage(msg); // 这里是TailContext
         }
 
         @Override
         public void channelReadComplete(ChannelHandlerContext ctx) {
-            onUnhandledInboundChannelReadComplete();
+            onUnhandledInboundChannelReadComplete(); // 这里是TailContext
         }
     }
 
@@ -1313,7 +1313,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public ChannelHandler handler() {
-            return this;
+            return this; // 这里是HeadContext
         }
 
         @Override
@@ -1329,7 +1329,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         @Override
         public void bind(
                 ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) {
-            unsafe.bind(localAddress, promise);
+            unsafe.bind(localAddress, promise); // 这里是HeadContext
         }
 
         @Override
@@ -1337,53 +1337,53 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 ChannelHandlerContext ctx,
                 SocketAddress remoteAddress, SocketAddress localAddress,
                 ChannelPromise promise) {
-            unsafe.connect(remoteAddress, localAddress, promise);
+            unsafe.connect(remoteAddress, localAddress, promise); // 这里是HeadContext
         }
 
         @Override
         public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) {
-            unsafe.disconnect(promise);
+            unsafe.disconnect(promise); // 这里是HeadContext
         }
 
         @Override
         public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
-            unsafe.close(promise);
+            unsafe.close(promise); // 这里是HeadContext
         }
 
         @Override
         public void deregister(ChannelHandlerContext ctx, ChannelPromise promise) {
-            unsafe.deregister(promise);
+            unsafe.deregister(promise); // 这里是HeadContext
         }
 
         @Override
         public void read(ChannelHandlerContext ctx) {
-            unsafe.beginRead();
+            unsafe.beginRead(); // 这里是HeadContext
         }
 
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-            unsafe.write(msg, promise);
+            unsafe.write(msg, promise); // 这里是HeadContext
         }
 
         @Override
         public void flush(ChannelHandlerContext ctx) {
-            unsafe.flush();
+            unsafe.flush(); // 这里是HeadContext
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            ctx.fireExceptionCaught(cause);
+            ctx.fireExceptionCaught(cause); // 这里是HeadContext
         }
 
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) {
-            invokeHandlerAddedIfNeeded();
+            invokeHandlerAddedIfNeeded(); // 这里是HeadContext
             ctx.fireChannelRegistered();
         }
 
         @Override
         public void channelUnregistered(ChannelHandlerContext ctx) {
-            ctx.fireChannelUnregistered();
+            ctx.fireChannelUnregistered(); // 这里是HeadContext
 
             // Remove all handlers sequentially if channel is closed and unregistered.
             if (!channel.isOpen()) {
@@ -1393,42 +1393,42 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            ctx.fireChannelActive();
+            ctx.fireChannelActive(); // 这里是HeadContext
 
             readIfIsAutoRead();
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) {
-            ctx.fireChannelInactive();
+            ctx.fireChannelInactive(); // 这里是HeadContext
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            ctx.fireChannelRead(msg);
+            ctx.fireChannelRead(msg); // 这里是HeadContext.channelRead
         }
 
         @Override
         public void channelReadComplete(ChannelHandlerContext ctx) {
-            ctx.fireChannelReadComplete();
+            ctx.fireChannelReadComplete(); // 这里是HeadContext
 
             readIfIsAutoRead();
         }
 
         private void readIfIsAutoRead() {
-            if (channel.config().isAutoRead()) {
+            if (channel.config().isAutoRead()) { // 这里是HeadContext
                 channel.read();
             }
         }
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-            ctx.fireUserEventTriggered(evt);
+            ctx.fireUserEventTriggered(evt); // 这里是HeadContext
         }
 
         @Override
         public void channelWritabilityChanged(ChannelHandlerContext ctx) {
-            ctx.fireChannelWritabilityChanged();
+            ctx.fireChannelWritabilityChanged(); // 这里是HeadContext
         }
     }
 

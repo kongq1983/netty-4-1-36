@@ -32,29 +32,29 @@ import java.util.WeakHashMap;
 final class ChannelHandlerMask {
 
     // Using to mask which methods must be called for a ChannelHandler.
-    static final int MASK_EXCEPTION_CAUGHT = 1;
-    static final int MASK_CHANNEL_REGISTERED = 1 << 1;
-    static final int MASK_CHANNEL_UNREGISTERED = 1 << 2;
-    static final int MASK_CHANNEL_ACTIVE = 1 << 3;
-    static final int MASK_CHANNEL_INACTIVE = 1 << 4;
-    static final int MASK_CHANNEL_READ = 1 << 5;
-    static final int MASK_CHANNEL_READ_COMPLETE = 1 << 6;
-    static final int MASK_USER_EVENT_TRIGGERED = 1 << 7;
-    static final int MASK_CHANNEL_WRITABILITY_CHANGED = 1 << 8;
-    static final int MASK_BIND = 1 << 9;
-    static final int MASK_CONNECT = 1 << 10;
-    static final int MASK_DISCONNECT = 1 << 11;
-    static final int MASK_CLOSE = 1 << 12;
-    static final int MASK_DEREGISTER = 1 << 13;
-    static final int MASK_READ = 1 << 14;
-    static final int MASK_WRITE = 1 << 15;
-    static final int MASK_FLUSH = 1 << 16;
+    static final int MASK_EXCEPTION_CAUGHT = 1; // 1  0001
+    static final int MASK_CHANNEL_REGISTERED = 1 << 1; // 2  0010(左移1位)
+    static final int MASK_CHANNEL_UNREGISTERED = 1 << 2; // 4 0100(左移2位)
+    static final int MASK_CHANNEL_ACTIVE = 1 << 3; // 8   1000(左移3位)
+    static final int MASK_CHANNEL_INACTIVE = 1 << 4; // 16
+    static final int MASK_CHANNEL_READ = 1 << 5; // 32
+    static final int MASK_CHANNEL_READ_COMPLETE = 1 << 6; //64
+    static final int MASK_USER_EVENT_TRIGGERED = 1 << 7; //128
+    static final int MASK_CHANNEL_WRITABILITY_CHANGED = 1 << 8; //256
+    static final int MASK_BIND = 1 << 9; //512
+    static final int MASK_CONNECT = 1 << 10; //1024
+    static final int MASK_DISCONNECT = 1 << 11; //2048
+    static final int MASK_CLOSE = 1 << 12; //4096
+    static final int MASK_DEREGISTER = 1 << 13; //8192
+    static final int MASK_READ = 1 << 14; //16384
+    static final int MASK_WRITE = 1 << 15; //32768   1000 0000 0000 0000  (左移15位)
+    static final int MASK_FLUSH = 1 << 16; //65536   1 0000 0000 0000 0000 (左移16位)
 
     private static final int MASK_ALL_INBOUND = MASK_EXCEPTION_CAUGHT | MASK_CHANNEL_REGISTERED |
             MASK_CHANNEL_UNREGISTERED | MASK_CHANNEL_ACTIVE | MASK_CHANNEL_INACTIVE | MASK_CHANNEL_READ |
-            MASK_CHANNEL_READ_COMPLETE | MASK_USER_EVENT_TRIGGERED | MASK_CHANNEL_WRITABILITY_CHANGED;
+            MASK_CHANNEL_READ_COMPLETE | MASK_USER_EVENT_TRIGGERED | MASK_CHANNEL_WRITABILITY_CHANGED; //所有支付回调的in事件
     private static final int MASK_ALL_OUTBOUND = MASK_EXCEPTION_CAUGHT | MASK_BIND | MASK_CONNECT | MASK_DISCONNECT |
-            MASK_CLOSE | MASK_DEREGISTER | MASK_READ | MASK_WRITE | MASK_FLUSH;
+            MASK_CLOSE | MASK_DEREGISTER | MASK_READ | MASK_WRITE | MASK_FLUSH; //所有支付回调的out事件
 
     private static final FastThreadLocal<Map<Class<? extends ChannelHandler>, Integer>> MASKS =
             new FastThreadLocal<Map<Class<? extends ChannelHandler>, Integer>>() {
@@ -79,20 +79,20 @@ final class ChannelHandlerMask {
         return mask;
     }
 
-    /**
+    /** 计算支持回调事件
      * Calculate the {@code executionMask}.
      */
     private static int mask0(Class<? extends ChannelHandler> handlerType) {
         int mask = MASK_EXCEPTION_CAUGHT;
         try {
             if (ChannelInboundHandler.class.isAssignableFrom(handlerType)) {
-                mask |= MASK_ALL_INBOUND;
+                mask |= MASK_ALL_INBOUND;  //所有的in事件
 
                 if (isSkippable(handlerType, "channelRegistered", ChannelHandlerContext.class)) {
-                    mask &= ~MASK_CHANNEL_REGISTERED;
+                    mask &= ~MASK_CHANNEL_REGISTERED; //排除REGISTERED   非:把1变成0  0变成1
                 }
                 if (isSkippable(handlerType, "channelUnregistered", ChannelHandlerContext.class)) {
-                    mask &= ~MASK_CHANNEL_UNREGISTERED;
+                    mask &= ~MASK_CHANNEL_UNREGISTERED; //排除UNREGISTERED
                 }
                 if (isSkippable(handlerType, "channelActive", ChannelHandlerContext.class)) {
                     mask &= ~MASK_CHANNEL_ACTIVE;
@@ -115,11 +115,11 @@ final class ChannelHandlerMask {
             }
 
             if (ChannelOutboundHandler.class.isAssignableFrom(handlerType)) {
-                mask |= MASK_ALL_OUTBOUND;
+                mask |= MASK_ALL_OUTBOUND;  //所有的out事件
 
                 if (isSkippable(handlerType, "bind", ChannelHandlerContext.class,
                         SocketAddress.class, ChannelPromise.class)) {
-                    mask &= ~MASK_BIND;
+                    mask &= ~MASK_BIND; // 排除bind
                 }
                 if (isSkippable(handlerType, "connect", ChannelHandlerContext.class, SocketAddress.class,
                         SocketAddress.class, ChannelPromise.class)) {
@@ -158,7 +158,7 @@ final class ChannelHandlerMask {
     }
 
     @SuppressWarnings("rawtypes")
-    private static boolean isSkippable(
+    private static boolean isSkippable( // 排除
             final Class<?> handlerType, final String methodName, final Class<?>... paramTypes) throws Exception {
         return AccessController.doPrivileged(new PrivilegedExceptionAction<Boolean>() {
             @Override
