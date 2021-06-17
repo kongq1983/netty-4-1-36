@@ -199,7 +199,7 @@ public class ChunkedWriteHandler extends ChannelDuplexHandler {
     }
 
     private void doFlush(final ChannelHandlerContext ctx) {
-        final Channel channel = ctx.channel();
+        final Channel channel = ctx.channel(); // NioSocketChannel
         if (!channel.isActive()) {
             discard(null);
             return;

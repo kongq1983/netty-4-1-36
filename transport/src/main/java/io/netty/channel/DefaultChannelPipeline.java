@@ -201,7 +201,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         synchronized (this) {
             checkMultiplicity(handler);
 
-            newCtx = newContext(group, filterName(name, handler), handler);
+            newCtx = newContext(group, filterName(name, handler), handler); // DefaultChannelHandlerContext
 
             addLast0(newCtx);
 

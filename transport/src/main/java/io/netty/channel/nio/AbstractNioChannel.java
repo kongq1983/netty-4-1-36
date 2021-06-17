@@ -56,7 +56,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
 
     private final SelectableChannel ch;
     protected final int readInterestOp;
-    volatile SelectionKey selectionKey;
+    volatile SelectionKey selectionKey; // doRegister()中的javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
     boolean readPending;
     private final Runnable clearReadPendingRunnable = new Runnable() {
         @Override
@@ -416,8 +416,8 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         readPending = true;
 
         final int interestOps = selectionKey.interestOps();
-        if ((interestOps & readInterestOp) == 0) {
-            selectionKey.interestOps(interestOps | readInterestOp);
+        if ((interestOps & readInterestOp) == 0) { // 最初doRegister注册的是ops=0事件
+            selectionKey.interestOps(interestOps | readInterestOp); // 会进到这里的是OP_ACCEPT=16
         }
     }
 

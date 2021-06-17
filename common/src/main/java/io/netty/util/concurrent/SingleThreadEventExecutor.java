@@ -392,7 +392,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      */
     protected boolean runAllTasks(long timeoutNanos) {
         fetchFromScheduledTaskQueue();
-        Runnable task = pollTask();
+        Runnable task = pollTask(); // 比如: AbstractChannel$AbstractUnsafe
         if (task == null) {
             afterRunningAllTasks();
             return false;
@@ -416,7 +416,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             }
 
             task = pollTask();
-            if (task == null) {
+             if (task == null) {
                 lastExecutionTime = ScheduledFutureTask.nanoTime();
                 break; // 没有任务，则结束循环
             }

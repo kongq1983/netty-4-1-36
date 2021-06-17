@@ -142,7 +142,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     static void invokeChannelRegistered(final AbstractChannelHandlerContext next) {
-        EventExecutor executor = next.executor();
+        EventExecutor executor = next.executor(); //NioEventLoop
         if (executor.inEventLoop()) {
             next.invokeChannelRegistered();
         } else {
@@ -483,7 +483,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
 
         final AbstractChannelHandlerContext next = findContextOutbound(MASK_BIND);
-        EventExecutor executor = next.executor();
+        EventExecutor executor = next.executor(); //得到NioEventLoop
         if (executor.inEventLoop()) {
             next.invokeBind(localAddress, promise);
         } else {
@@ -498,7 +498,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     private void invokeBind(SocketAddress localAddress, ChannelPromise promise) {
-        if (invokeHandler()) {
+        if (invokeHandler()) { // handlerState=2  handlerState == ADD_COMPLETE || (!ordered && handlerState == ADD_PENDING);
             try {
                 ((ChannelOutboundHandler) handler()).bind(this, localAddress, promise);
             } catch (Throwable t) {

@@ -879,7 +879,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             int size;
             try {
-                msg = filterOutboundMessage(msg);
+                msg = filterOutboundMessage(msg); //websocket 沒建立连接 然后发送数据 这里会报错
                 size = pipeline.estimatorHandle().size(msg);
                 if (size < 0) {
                     size = 0;

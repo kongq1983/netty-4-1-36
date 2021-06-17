@@ -140,8 +140,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new NullPointerException("selectStrategy");
         }
         provider = selectorProvider;
-        final SelectorTuple selectorTuple = openSelector(); //SelectorProvider.provider().openSelector()
-        selector = selectorTuple.selector; // SelectedSelectionKeySetSelector  包装unwrappedSelector
+        final SelectorTuple selectorTuple = openSelector(); //优化selectedKeys  SelectorProvider.provider().openSelector()
+        selector = selectorTuple.selector; // 优化过后是SelectedSelectionKeySetSelector  包装unwrappedSelector 没优化和unwrappedSelector是一样的原生的jdk Selector
         unwrappedSelector = selectorTuple.unwrappedSelector; //原始的nio创建对象  比如WindowsSelectorImpl
         selectStrategy = strategy; // DefaultSelectStrategy
     }
