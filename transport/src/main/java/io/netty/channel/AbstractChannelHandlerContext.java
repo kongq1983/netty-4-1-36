@@ -263,7 +263,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
-    @Override
+    @Override // 1个1个往后调用invokeExceptionCaught
     public ChannelHandlerContext fireExceptionCaught(final Throwable cause) {
         invokeExceptionCaught(findContextInbound(MASK_EXCEPTION_CAUGHT), cause);
         return this;

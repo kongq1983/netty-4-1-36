@@ -15,7 +15,7 @@
  */
 package io.netty.util;
 
-/**
+/** 一个需要显式进行资源回收的引用计数的对象
  * A reference-counted object that requires explicit deallocation.
  * <p>
  * When a new {@link ReferenceCounted} is instantiated, it starts with the reference count of {@code 1}.
