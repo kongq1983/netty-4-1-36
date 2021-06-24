@@ -294,7 +294,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new IllegalStateException("event loop shut down");
         }
 
-        if (inEventLoop()) {
+        if (inEventLoop()) { // 是否当前线程
             register0(ch, interestOps, task);
         } else {
             try {
