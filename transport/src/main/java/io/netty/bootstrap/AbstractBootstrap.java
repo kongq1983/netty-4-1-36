@@ -279,7 +279,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
-        final ChannelFuture regFuture = initAndRegister();
+        final ChannelFuture regFuture = initAndRegister();  // 会初始化指定的是NioServerSocketChannel
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
             return regFuture;
@@ -318,7 +318,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         Channel channel = null;
         try { // 比如channel指定的是NioServerSocketChannel
             channel = channelFactory.newChannel(); // ReflectiveChannelFactory 反射 constructor.newInstance()
-            init(channel);
+            init(channel); // 初始化具体的Handler
         } catch (Throwable t) {
             if (channel != null) {
                 // channel can be null if newChannel crashed (eg SocketException("too many open files"))

@@ -112,7 +112,7 @@ public class WebSocketServerHandshakerFactory {
      *         socket version is not supported.
      */
     public WebSocketServerHandshaker newHandshaker(HttpRequest req) {
-
+        // sec-websocket-version
         CharSequence version = req.headers().get(HttpHeaderNames.SEC_WEBSOCKET_VERSION);
         if (version != null) {
             if (version.equals(WebSocketVersion.V13.toHttpHeaderValue())) {

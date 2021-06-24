@@ -29,6 +29,6 @@ final class DefaultChannelHandlerContext extends AbstractChannelHandlerContext {
 
     @Override
     public ChannelHandler handler() {
-        return handler;
+        return handler; // 比如addLast(ctx) 这里的handler就是这个ctx
     }
 }

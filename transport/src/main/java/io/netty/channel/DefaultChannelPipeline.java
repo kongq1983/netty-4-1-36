@@ -200,15 +200,15 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
             checkMultiplicity(handler);
-
+            // 初始化1个DefaultChannelHandlerContext
             newCtx = newContext(group, filterName(name, handler), handler); // DefaultChannelHandlerContext
-
+            // 添加到倒数第2个  最后1个是tail
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
             // In this case we add the context to the pipeline and add a task that will call
             // ChannelHandler.handlerAdded(...) once the channel is registered.
-            if (!registered) {
+            if (!registered) { //每個DefaultChannelPipeline 第1次  未注冊 ChannelInitializer 比如NioServerSocketChannel  NioSocketChannel
                 newCtx.setAddPending();
                 callHandlerCallbackLater(newCtx, true);
                 return this;
@@ -220,7 +220,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 return this;
             }
         }
-        callHandlerAdded0(newCtx);
+        callHandlerAdded0(newCtx); // 最终会调用handlerAdded  前提该Handler实现了该方法handlerAdded
         return this;
     }
 
@@ -266,7 +266,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 return this;
             }
         }
-        callHandlerAdded0(newCtx);
+        callHandlerAdded0(newCtx); // 調用如果存在handlerAdded
         return this;
     }
 
@@ -1393,7 +1393,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            ctx.fireChannelActive(); // 这里是HeadContext
+            ctx.fireChannelActive(); // 从这里开始  这里是HeadContext
 
             readIfIsAutoRead();
         }
