@@ -97,27 +97,27 @@ import java.util.concurrent.TimeUnit;
  */
 public class IdleStateHandler extends ChannelDuplexHandler {
     private static final long MIN_TIMEOUT_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
-
+    // write后触发writeListener事件
     // Not create a new ChannelFutureListener per write operation to reduce GC pressure.
     private final ChannelFutureListener writeListener = new ChannelFutureListener() {
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
-            lastWriteTime = ticksInNanos();
+            lastWriteTime = ticksInNanos(); // // 设置新的上次写的时间
             firstWriterIdleEvent = firstAllIdleEvent = true;
         }
     };
 
     private final boolean observeOutput;
-    private final long readerIdleTimeNanos;
-    private final long writerIdleTimeNanos;
-    private final long allIdleTimeNanos;
+    private final long readerIdleTimeNanos; // 读空闲超时时间
+    private final long writerIdleTimeNanos; // 写空闲超时时间
+    private final long allIdleTimeNanos; // 读和写都空闲的超时时间
 
     private ScheduledFuture<?> readerIdleTimeout;
-    private long lastReadTime;
+    private long lastReadTime; // 最后1次读的时间
     private boolean firstReaderIdleEvent = true;
 
     private ScheduledFuture<?> writerIdleTimeout;
-    private long lastWriteTime;
+    private long lastWriteTime; // 最后1次写的时间
     private boolean firstWriterIdleEvent = true;
 
     private ScheduledFuture<?> allIdleTimeout;
@@ -290,8 +290,8 @@ public class IdleStateHandler extends ChannelDuplexHandler {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         if ((readerIdleTimeNanos > 0 || allIdleTimeNanos > 0) && reading) {
-            lastReadTime = ticksInNanos();
-            reading = false;
+            lastReadTime = ticksInNanos(); // 设置最后1次读的时间
+            reading = false;  // 读完设置false
         }
         ctx.fireChannelReadComplete();
     }
@@ -300,7 +300,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         // Allow writing with void promise if handler is only configured for read timeout events.
         if (writerIdleTimeNanos > 0 || allIdleTimeNanos > 0) {
-            ctx.write(msg, promise.unvoid()).addListener(writeListener);
+            ctx.write(msg, promise.unvoid()).addListener(writeListener); // writeListener会设置新的写时间
         } else {
             ctx.write(msg, promise);
         }
@@ -315,10 +315,10 @@ public class IdleStateHandler extends ChannelDuplexHandler {
             return;
         }
 
-        state = 1;
+        state = 1; // initialized
         initOutputChanged(ctx);
 
-        lastReadTime = lastWriteTime = ticksInNanos();
+        lastReadTime = lastWriteTime = ticksInNanos(); // 设置最后1次读的时间  写的时间
         if (readerIdleTimeNanos > 0) {
             readerIdleTimeout = schedule(ctx, new ReaderIdleTimeoutTask(ctx),
                     readerIdleTimeNanos, TimeUnit.NANOSECONDS);
@@ -333,7 +333,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
         }
     }
 
-    /**
+    /** 现在的时间-纳秒
      * This method is visible for testing!
      */
     long ticksInNanos() {
@@ -488,12 +488,12 @@ public class IdleStateHandler extends ChannelDuplexHandler {
 
         @Override
         protected void run(ChannelHandlerContext ctx) {
-            long nextDelay = readerIdleTimeNanos;
-            if (!reading) {
-                nextDelay -= ticksInNanos() - lastReadTime;
-            }
+            long nextDelay = readerIdleTimeNanos; // 超时-纳秒
+            if (!reading) { // //是否超时
+                nextDelay -= ticksInNanos() - lastReadTime; // 超时时间(nanos) -= 现在的时间(nanos) - 上次最后1次读的时间(nanos)
+            }  // 500(超时时间) -= 1000(现在时间) - 600(上次读的时间)  = 100(结果)
 
-            if (nextDelay <= 0) {
+            if (nextDelay <= 0) { // 超时
                 // Reader is idle - set a new timeout and notify the callback.
                 readerIdleTimeout = schedule(ctx, this, readerIdleTimeNanos, TimeUnit.NANOSECONDS);
 
@@ -506,7 +506,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
                 } catch (Throwable t) {
                     ctx.fireExceptionCaught(t);
                 }
-            } else {
+            } else { //未超时  设置更短的超时时间 (定时器周期变短了)  nextDelay -= ticksInNanos() - lastReadTime;
                 // Read occurred before the timeout - set a new timeout with shorter delay.
                 readerIdleTimeout = schedule(ctx, this, nextDelay, TimeUnit.NANOSECONDS);
             }
@@ -522,26 +522,26 @@ public class IdleStateHandler extends ChannelDuplexHandler {
         @Override
         protected void run(ChannelHandlerContext ctx) {
 
-            long lastWriteTime = IdleStateHandler.this.lastWriteTime;
-            long nextDelay = writerIdleTimeNanos - (ticksInNanos() - lastWriteTime);
-            if (nextDelay <= 0) {
-                // Writer is idle - set a new timeout and notify the callback.
+            long lastWriteTime = IdleStateHandler.this.lastWriteTime; // 上一次写的时间
+            long nextDelay = writerIdleTimeNanos - (ticksInNanos() - lastWriteTime); // 写的超时时间 -  (现在时间-上次写的时间)
+            if (nextDelay <= 0) { // 写超时
+                // Writer is idle - set a new timeout and notify the callback. 设置初始化的写超时时间
                 writerIdleTimeout = schedule(ctx, this, writerIdleTimeNanos, TimeUnit.NANOSECONDS);
 
                 boolean first = firstWriterIdleEvent;
                 firstWriterIdleEvent = false;
 
                 try {
-                    if (hasOutputChanged(ctx, first)) {
+                    if (hasOutputChanged(ctx, first)) { // 这里会变更上次写的时间
                         return;
                     }
 
                     IdleStateEvent event = newIdleStateEvent(IdleState.WRITER_IDLE, first);
-                    channelIdle(ctx, event);
+                    channelIdle(ctx, event); // 触发通知自定义事件
                 } catch (Throwable t) {
                     ctx.fireExceptionCaught(t);
                 }
-            } else {
+            } else { // 未超时，设置更短的定时器周期时间
                 // Write occurred before the timeout - set a new timeout with shorter delay.
                 writerIdleTimeout = schedule(ctx, this, nextDelay, TimeUnit.NANOSECONDS);
             }
@@ -557,13 +557,13 @@ public class IdleStateHandler extends ChannelDuplexHandler {
         @Override
         protected void run(ChannelHandlerContext ctx) {
 
-            long nextDelay = allIdleTimeNanos;
+            long nextDelay = allIdleTimeNanos; // 读和写都空闲的超时时间
             if (!reading) {
-                nextDelay -= ticksInNanos() - Math.max(lastReadTime, lastWriteTime);
+                nextDelay -= ticksInNanos() - Math.max(lastReadTime, lastWriteTime); // 读写超时时间 -= 现在时间 - (最后一次读或写的时间)
             }
-            if (nextDelay <= 0) {
+            if (nextDelay <= 0) { // 超时
                 // Both reader and writer are idle - set a new timeout and
-                // notify the callback.
+                // notify the callback. 设置最初的读写超时时间
                 allIdleTimeout = schedule(ctx, this, allIdleTimeNanos, TimeUnit.NANOSECONDS);
 
                 boolean first = firstAllIdleEvent;
@@ -575,13 +575,13 @@ public class IdleStateHandler extends ChannelDuplexHandler {
                     }
 
                     IdleStateEvent event = newIdleStateEvent(IdleState.ALL_IDLE, first);
-                    channelIdle(ctx, event);
+                    channelIdle(ctx, event); // 触发通知自定义事件
                 } catch (Throwable t) {
                     ctx.fireExceptionCaught(t);
                 }
             } else {
                 // Either read or write occurred before the timeout - set a new
-                // timeout with shorter delay.
+                // timeout with shorter delay. 未超时 设置更短的周期时间
                 allIdleTimeout = schedule(ctx, this, nextDelay, TimeUnit.NANOSECONDS);
             }
         }

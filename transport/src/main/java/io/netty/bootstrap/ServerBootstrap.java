@@ -241,7 +241,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @Override
         @SuppressWarnings("unchecked") /** 客户端发送数据 到这里 */
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            final Channel child = (Channel) msg;
+            final Channel child = (Channel) msg;  // NioSocketChannel
 
             child.pipeline().addLast(childHandler);
 

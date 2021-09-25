@@ -30,7 +30,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
     private DefaultEventExecutorChooserFactory() { }
 
     @SuppressWarnings("unchecked")
-    @Override
+    @Override // 策略模式
     public EventExecutorChooser newChooser(EventExecutor[] executors) {
         if (isPowerOfTwo(executors.length)) {
             return new PowerOfTwoEventExecutorChooser(executors);
@@ -38,7 +38,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
             return new GenericEventExecutorChooser(executors);
         }
     }
-
+    /**  1 2 4 8 16 ....... */
     private static boolean isPowerOfTwo(int val) {
         return (val & -val) == val;
     }
@@ -52,8 +52,8 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
         }
 
         @Override
-        public EventExecutor next() {//负载均衡
-            return executors[idx.getAndIncrement() & executors.length - 1];
+        public EventExecutor next() {// -的 优先级高于&  (executors.length - 1 后每位都是1)
+            return executors[idx.getAndIncrement() & executors.length - 1]; // 通过位操作实现  1-1=0     10(二进制)-1=1     100(二进制)-1=11   1000(二进制)-1=111
         }
     }
 
@@ -67,7 +67,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
         @Override
         public EventExecutor next() {
-            return executors[Math.abs(idx.getAndIncrement() % executors.length)];
+            return executors[Math.abs(idx.getAndIncrement() % executors.length)];  // 通过取余实现
         }
     }
 }
