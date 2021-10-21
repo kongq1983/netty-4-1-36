@@ -1,0 +1,28 @@
+Netty是如何实现线程和Channel唯一绑定的
+
+netty的线程模型对一个channel来说是单线程的,也就是说这个channel的所有读写事件都是同一个线程执行的,避免了多线程产生的并发问题.而一个eventloop是可以被多个channel绑定的,
+那么每次服务器连接一个channel之时,netty时如何知道使用哪个线程的呢?
+
+
+netty通过java.nio.channels.SelectableChannel#register(java.nio.channels.Selector, int, java.lang.Object)方法将自身实现的NioSocketChannel和SelectionKey,原生的socket channel绑定在了一起.
+NioSocketChannel(AbstractNioChannel.NioUnsafe负责创建)在初始化过程中(由ServerBootstrapAcceptor负责添加pipeline等)时会设置eventloop变量的,
+这样每次selectionkey事件触发就知道是哪个niosocketchannel,然后就知道了eventloop(执行线程).具体代码实现位置见下文
+
+
+总结netty服务端接入客户端的处理流程
+Netty 服务端启动会创建一个EventLoop线程池(如果是NIO的,则具体的线程执行器是NioEventLoop),并且初始化一个 NioServerSocketChannel
+NioServerSocketChannel 的 ChannelPipeline 中会被添加一个 ServerBootstrapAcceptor 的 ChannelHandler
+当 selector 轮询出客户端读写事件(NioEventLoop 中的 run 方法中的逻辑)
+调用 NioEventLoop.processSelectedKey方法处理
+继续调用 AbstractNioChannel.NioUnsafe.read() 构建一个 NioSocketChannel (客户端管道)
+然后调用 NioServerSocketChannel 的 pipeline.fireChannelRead(NioSocketChannel)处理
+也就是调用 ServerBootstrapAcceptor.channelRead()处理,然后就会调用上文提到的io.netty.channel.MultithreadEventLoopGroup#register(io.netty.channel.Channel)逻辑
+然后就是触发业务层实现的 ChannelHandler 处理
+你可以通过设置这个方法的断点io.netty.bootstrap.ServerBootstrap.ServerBootstrapAcceptor#channelRead来分析整个流程的执行情况
+1. 在方法的第一行设置断点
+2. 启动一个netty写的nio server程序
+3. 启动一个netty写的nio client程序连接2步的server端,然后 IDEA 的编辑器就会显示整个调用
+
+
+
+https://blog.csdn.net/mydream20130314/article/details/84501060

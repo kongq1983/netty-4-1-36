@@ -124,7 +124,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
     private boolean firstAllIdleEvent = true;
 
     private byte state; // 0 - none, 1 - initialized, 2 - destroyed
-    private boolean reading;
+    private boolean reading; // 是否正在读
 
     private long lastChangeCheckTimeStamp;
     private int lastMessageHashCode;

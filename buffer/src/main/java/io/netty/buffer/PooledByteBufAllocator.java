@@ -52,7 +52,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
     private static final boolean DEFAULT_USE_CACHE_FOR_ALL_THREADS;
     private static final int DEFAULT_DIRECT_MEMORY_CACHE_ALIGNMENT;
     static final int DEFAULT_MAX_CACHED_BYTEBUFFERS_PER_CHUNK;
-
+    // 每页最小4096字节
     private static final int MIN_PAGE_SIZE = 4096;
     private static final int MAX_CHUNK_SIZE = (int) (((long) Integer.MAX_VALUE + 1) / 2);
 
@@ -63,7 +63,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
         }
     };
 
-    static {
+    static { // 默认每页8192字节
         int defaultPageSize = SystemPropertyUtil.getInt("io.netty.allocator.pageSize", 8192);
         Throwable pageSizeFallbackCause = null;
         try {
@@ -95,7 +95,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
          *
          * See https://github.com/netty/netty/issues/3888.
          */
-        final int defaultMinNumArena = NettyRuntime.availableProcessors() * 2;
+        final int defaultMinNumArena = NettyRuntime.availableProcessors() * 2; //  默认cpu核数*2  保证了每一个线程会有一个独享的arena
         final int defaultChunkSize = DEFAULT_PAGE_SIZE << DEFAULT_MAX_ORDER;
         DEFAULT_NUM_HEAP_ARENA = Math.max(0,
                 SystemPropertyUtil.getInt(
@@ -282,7 +282,7 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
 
     @SuppressWarnings("unchecked")
     private static <T> PoolArena<T>[] newArenaArray(int size) {
-        return new PoolArena[size];
+        return new PoolArena[size]; // nDirectArena = defaultMinNumArena = cpu核数*2
     }
 
     private static int validateAndCalculatePageShifts(int pageSize) {
@@ -334,8 +334,8 @@ public class PooledByteBufAllocator extends AbstractByteBufAllocator implements 
 
     @Override
     protected ByteBuf newDirectBuffer(int initialCapacity, int maxCapacity) {
-        PoolThreadCache cache = threadCache.get();
-        PoolArena<ByteBuffer> directArena = cache.directArena;
+        PoolThreadCache cache = threadCache.get(); // 从threadlocal拿到当前线程缓存对象
+        PoolArena<ByteBuffer> directArena = cache.directArena; // 从PoolThreadCache拿到PoolArena
 
         final ByteBuf buf;
         if (directArena != null) {

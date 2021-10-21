@@ -186,16 +186,16 @@ import io.netty.handler.codec.serialization.ObjectDecoder;
  */
 public class LengthFieldBasedFrameDecoder extends ByteToMessageDecoder {
 
-    private final ByteOrder byteOrder;
-    private final int maxFrameLength;
-    private final int lengthFieldOffset;
-    private final int lengthFieldLength;
-    private final int lengthFieldEndOffset;
-    private final int lengthAdjustment;
+    private final ByteOrder byteOrder; /** maxFrameLength: 包的最大长度，超出包的最大长度netty将会做一些特殊处理 */
+    private final int maxFrameLength; /** lengthFieldOffset: 长度域的偏移量 0，表示无偏移 */
+    private final int lengthFieldOffset;/** lengthFieldLength: 长度域长度  */
+    private final int lengthFieldLength; /** lengthFieldEndOffset: 这个值等于lengthFieldOffset + lengthFieldLength   */
+    private final int lengthFieldEndOffset; /** lengthAdjustment: 长度域表示的包体的长度略过了header，这里有另外一个参数，叫做 lengthAdjustment，包体长度调整的大小 */
+    private final int lengthAdjustment; /** initialBytesToStrip: netty拿到一个完整的数据包之后向业务解码器传递之前，应该跳过多少字节 */
     private final int initialBytesToStrip;
     private final boolean failFast;
     private boolean discardingTooLongFrame;
-    private long tooLongFrameLength;
+    private long tooLongFrameLength; /** 丢弃字节数 */
     private long bytesToDiscard;
 
     /**

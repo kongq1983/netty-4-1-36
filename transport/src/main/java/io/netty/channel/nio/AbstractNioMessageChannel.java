@@ -56,7 +56,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     }
 
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
-        /** 注意关注这个  readBuf  */
+        /** 注意关注这个  readBuf  accept: Object: NioSocketChannel */
         private final List<Object> readBuf = new ArrayList<Object>();
 
         @Override

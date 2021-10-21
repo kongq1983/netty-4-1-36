@@ -73,15 +73,15 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {
-            executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
+            executor = new ThreadPerTaskExecutor(newDefaultThreadFactory()); // io-线程池是同一個  或者boss线程池是同一个
         }
         // 某种线程集合 accetpor线程集合 、 io线程集合
-        children = new EventExecutor[nThreads];
+        children = new EventExecutor[nThreads]; // 每个自己都是个线程池
 
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
-                children[i] = newChild(executor, args); //创建对象为NioEventLoop
+                children[i] = newChild(executor, args); //创建对象为EventExecutor
                 success = true;
             } catch (Exception e) {
                 // TODO: Think about if this is a good exception type
@@ -108,7 +108,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
         // length是2的几次方: PowerOfTwoEventExecutorChooser     other: GenericEventExecutorChooser
-        chooser = chooserFactory.newChooser(children);
+        chooser = chooserFactory.newChooser(children); // DefaultEventExecutorChooserFactory
 
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override

@@ -36,9 +36,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-/**
+/** ServerBootstrapAcceptor 本身也是一个 ChannelInboundHandlerAdapter ,它是在 ServerChannel 启动时被添加到 ChannelPipeline 中的
  * {@link Bootstrap} sub-class which allows easy bootstrap of {@link ServerChannel}
- *
+ * ,用来初始化每个客户端连接的 NioSocketChannel
  */
 public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerChannel> {
 
@@ -250,11 +250,11 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             for (Entry<AttributeKey<?>, Object> e: childAttrs) {
                 child.attr((AttributeKey<Object>) e.getKey()).set(e.getValue());
             }
-
-            try {
+            // childGroup: NioEventLoopGroup
+            try {  //注意这里的 register方法就是会执行之前所说的 绑定 NioScoketChannel 到 SelectionKey
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
+                    public void operationComplete(ChannelFuture future) throws Exception { // EventExecutor
                         if (!future.isSuccess()) {
                             forceClose(child, future.cause());
                         }

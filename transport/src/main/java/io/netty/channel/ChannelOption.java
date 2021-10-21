@@ -128,7 +128,7 @@ public class ChannelOption<T> extends AbstractConstant<ChannelOption<T>> {
     @Deprecated
     public static final ChannelOption<Boolean> DATAGRAM_CHANNEL_ACTIVE_ON_REGISTRATION =
             valueOf("DATAGRAM_CHANNEL_ACTIVE_ON_REGISTRATION");
-
+    // netty参数，单线程执行ChannelPipeline中的事件，默认值为true。这样整个pipeline由一个线程执行，这样不需要进行线程切换以及线程同步，是netty4的推荐做法
     public static final ChannelOption<Boolean> SINGLE_EVENTEXECUTOR_PER_GROUP =
             valueOf("SINGLE_EVENTEXECUTOR_PER_GROUP");
 

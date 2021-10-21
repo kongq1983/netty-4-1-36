@@ -611,9 +611,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // See https://github.com/netty/netty/issues/2363
             selectedKeys.keys[i] = null;
 
-            final Object a = k.attachment();
+            final Object a = k.attachment(); // 比如 NioServerSocketChannel
 
-            if (a instanceof AbstractNioChannel) {
+            if (a instanceof AbstractNioChannel) { // 会进入这里
                 processSelectedKey(k, (AbstractNioChannel) a);
             } else {
                 @SuppressWarnings("unchecked")
@@ -633,7 +633,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private void processSelectedKey(SelectionKey k, AbstractNioChannel ch) {
-        final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();
+        final AbstractNioChannel.NioUnsafe unsafe = ch.unsafe(); // AbstractNioMessageChannel.NioMessageUnsafe
         if (!k.isValid()) {
             final EventLoop eventLoop;
             try {

@@ -117,13 +117,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     private AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
-        return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler);
+        return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler); // 构造
     }
 
     private EventExecutor childExecutor(EventExecutorGroup group) {
         if (group == null) {
             return null;
-        }
+        } // netty参数，单线程执行ChannelPipeline中的事件，默认值为true。这样整个pipeline由一个线程执行，这样不需要进行线程切换以及线程同步，是netty4的推荐做法
         Boolean pinEventExecutor = channel.config().getOption(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP);
         if (pinEventExecutor != null && !pinEventExecutor) {
             return group.next();

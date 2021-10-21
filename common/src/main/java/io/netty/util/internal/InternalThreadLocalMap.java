@@ -68,9 +68,9 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     public static InternalThreadLocalMap get() {
         Thread thread = Thread.currentThread();
         if (thread instanceof FastThreadLocalThread) {
-            return fastGet((FastThreadLocalThread) thread);
+            return fastGet((FastThreadLocalThread) thread); // netty自己实现
         } else {
-            return slowGet();
+            return slowGet(); //ThreadLocal实现
         }
     }
 
@@ -82,7 +82,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
         return threadLocalMap;
     }
 
-    private static InternalThreadLocalMap slowGet() {
+    private static InternalThreadLocalMap slowGet() { // ThreadLocal实现
         ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap = UnpaddedInternalThreadLocalMap.slowThreadLocalMap;
         InternalThreadLocalMap ret = slowThreadLocalMap.get();
         if (ret == null) {

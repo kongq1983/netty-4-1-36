@@ -53,7 +53,7 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
     }
 
     @Override
-    public EventExecutor next() {
+    public EventExecutor next() { // return this
         return this;
     }
 
