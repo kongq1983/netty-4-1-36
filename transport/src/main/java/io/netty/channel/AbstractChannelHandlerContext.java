@@ -200,7 +200,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     @Override
-    public ChannelHandlerContext fireChannelActive() { // 寻找下一个Handler
+    public ChannelHandlerContext fireChannelActive() {
         invokeChannelActive(findContextInbound(MASK_CHANNEL_ACTIVE));
         return this;
     }

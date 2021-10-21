@@ -291,7 +291,8 @@
     <!-- By default skip native testsuite as it requires a custom environment with graalvm installed -->
     <skipNativeImageTestsuite>true</skipNativeImageTestsuite>
     <!-- os.detected.classifier不能去掉 -->
-    <tcnative.classifier>${os.detected.classifier}</tcnative.classifier>
+   <!-- <tcnative.classifier>${os.detected.classifier}</tcnative.classifier>-->
+    <tcnative.classifier>windows-x86_64</tcnative.classifier>
   </properties>
 
   <modules>
@@ -724,7 +725,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
+      <!--<plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>${enforcer.plugin.version}</version>
         <executions>
@@ -736,8 +737,8 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <!-- Enforce JDK 1.8+ for compilation. -->
-                  <!-- This is needed because of java.util.zip.Deflater and NIO UDP multicast. -->
+                  &lt;!&ndash; Enforce JDK 1.8+ for compilation. &ndash;&gt;
+                  &lt;!&ndash; This is needed because of java.util.zip.Deflater and NIO UDP multicast. &ndash;&gt;
                   <version>[1.8.0,)</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
@@ -754,7 +755,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.0</version>
@@ -1050,7 +1051,7 @@
         </configuration>
 
       </plugin>
-      <plugin>
+      <!--<plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.4</version>
         <configuration>
@@ -1060,14 +1061,14 @@
           <author>false</author>
           <keywords>true</keywords>
         </configuration>
-      </plugin>
-      <plugin>
+      </plugin>-->
+      <!--<plugin>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.8.2</version>
         <configuration>
           <retryFailedDeploymentCount>10</retryFailedDeploymentCount>
         </configuration>
-      </plugin>
+      </plugin>-->
       <!-- After artifacts were deployed from linux and macos we need to execute the following on macOS (in the root of the project).
            mvn -Psonatype-oss-release,full,uber-staging -pl transport-native-kqueue,transport-native-unix-common,all,tarball clean package gpg:sign org.sonatype.plugins:nexus-staging-maven-plugin:deploy -DstagingRepositoryId=${netty-id} -DnexusUrl=https://oss.sonatype.org -DserverId=sonatype-nexus-staging
       -->
