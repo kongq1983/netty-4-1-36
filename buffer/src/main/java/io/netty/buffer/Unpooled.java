@@ -305,9 +305,9 @@ public final class Unpooled {
      */
     public static ByteBuf wrappedBuffer(int maxNumComponents, ByteBuf... buffers) {
         switch (buffers.length) {
-        case 0:
+        case 0: //零个
             break;
-        case 1:
+        case 1: // 只有1個
             ByteBuf buffer = buffers[0];
             if (buffer.isReadable()) {
                 return wrappedBuffer(buffer.order(BIG_ENDIAN));
@@ -315,7 +315,7 @@ public final class Unpooled {
                 buffer.release();
             }
             break;
-        default:
+        default: // 多个
             for (int i = 0; i < buffers.length; i++) {
                 ByteBuf buf = buffers[i];
                 if (buf.isReadable()) {

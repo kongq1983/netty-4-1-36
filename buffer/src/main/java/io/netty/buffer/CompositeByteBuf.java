@@ -60,7 +60,7 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
     private boolean freed;
 
     private CompositeByteBuf(ByteBufAllocator alloc, boolean direct, int maxNumComponents, int initSize) {
-        super(AbstractByteBufAllocator.DEFAULT_MAX_CAPACITY);
+        super(AbstractByteBufAllocator.DEFAULT_MAX_CAPACITY); // maxCapacity设置Integer.MAX_VALUE
         if (alloc == null) {
             throw new NullPointerException("alloc");
         }
@@ -70,8 +70,8 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
         }
         this.alloc = alloc;
         this.direct = direct;
-        this.maxNumComponents = maxNumComponents;
-        components = newCompArray(initSize, maxNumComponents);
+        this.maxNumComponents = maxNumComponents; // 几个ByteBuf组合
+        components = newCompArray(initSize, maxNumComponents); // 一般情况初始化maxNumComponents个Component
     }
 
     public CompositeByteBuf(ByteBufAllocator alloc, boolean direct, int maxNumComponents) {
@@ -138,7 +138,7 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
     }
 
     private static Component[] newCompArray(int initComponents, int maxNumComponents) {
-        int capacityGuess = Math.min(AbstractByteBufAllocator.DEFAULT_MAX_COMPONENTS, maxNumComponents);
+        int capacityGuess = Math.min(AbstractByteBufAllocator.DEFAULT_MAX_COMPONENTS, maxNumComponents); // 虽然 min和max 但其实ByteBuf几个就是几个Component
         return new Component[Math.max(initComponents, capacityGuess)];
     }
 
@@ -793,7 +793,7 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
     }
 
     @Override
-    public int capacity() {
+    public int capacity() { // 相当于所有的ByteBuf字节加起来
         int size = componentCount;
         return size > 0 ? components[size - 1].endOffset : 0;
     }
@@ -887,7 +887,7 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
         if (size <= 2) { // fast-path for 1 and 2 component count
             return size == 1 || offset < components[0].endOffset ? 0 : 1;
         }
-        for (int low = 0, high = size; low <= high;) {
+        for (int low = 0, high = size; low <= high;) { // 2分法
             int mid = low + high >>> 1;
             Component c = components[mid];
             if (offset >= c.endOffset) {
@@ -1022,7 +1022,7 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
             return this;
         }
 
-        int i = toComponentIndex0(index);
+        int i = toComponentIndex0(index); // 根据index得到Component的index 位置
         while (length > 0) {
             Component c = components[i];
             int localLength = Math.min(length, c.endOffset - index);
@@ -1854,8 +1854,8 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
 
         Component(ByteBuf buf, int srcOffset, int offset, int len, ByteBuf slice) {
             this.buf = buf;
-            this.offset = offset;
-            this.endOffset = offset + len;
+            this.offset = offset; // 相当于当前bytebuf的开始位置 (多个合并后的开始位置)
+            this.endOffset = offset + len; // 相当于当前bytebuf的结束位置 (多个合并后的结束位置)
             this.adjustment = srcOffset - offset;
             this.slice = slice;
         }
@@ -2302,6 +2302,6 @@ public class CompositeByteBuf extends AbstractReferenceCountedByteBuf implements
         } else if (i < size) {
             System.arraycopy(components, i, components, i + count, size - i);
         }
-        componentCount = newSize;
+        componentCount = newSize; // 第一次直接返回这里 就是count
     }
 }
